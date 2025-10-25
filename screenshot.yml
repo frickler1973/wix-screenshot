@@ -1,0 +1,39 @@
+.github/workflows/screenshot.yml
+
+name: Daily Screenshot of WIix Site
+
+on:
+  schedule:
+    - cron: "06***" #jeden Tag 6:00 Uhr UTC
+  workflow_dispach:  # manuell startbar
+
+jobs:
+  capture:
+    runs-on:  ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Chronium
+        run: sudo apt-get unpdate && sudo apt-get install -y chronium-browser imagemagick
+
+      - name: Take Screenshot
+        run: |
+          mkdir -p docs
+          chronium-browser \
+            --headless \
+            --disable-gpu \
+            --screenshot="docs/kindle.png" \
+            --window-size=600,800 \
+            https:\\dahmengenhuelsen.wixsite.com/laknesleuhneg
+
+    # Optional: für Kindle in Graustufen umwandeln
+        convert docs/kindle.png -colorspace Gray docs/kindle.png
+
+      - name: Commit an push if changed
+        run:
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add docs/kindle.png
+          git diif --quiet && echo "No changes" || (git commit -m "Update Wix screenshot" && git push)
